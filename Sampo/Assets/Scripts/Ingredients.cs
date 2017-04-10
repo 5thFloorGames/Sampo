@@ -15,10 +15,12 @@ public class Ingredients : MonoBehaviour {
 	private int failuresCount = 0;
 	private Queue<Ingredient> ingredientQueue;
 	private PointerEventData pointer = new PointerEventData(EventSystem.current);
+	public GameObject smithEFX;
 
 	// Use this for initialization
 	void Start () {
 		ingredientQueue = new Queue<Ingredient> ();
+		smithEFX = GameObject.Find ("FireComplex");
 	}
 	
 	// Update is called once per frame
@@ -39,6 +41,7 @@ public class Ingredients : MonoBehaviour {
 			AddIngredient (Ingredient.Failures);
 		} else if (Input.GetKeyDown (KeyCode.Space)) {
 			CheckIngredients ();
+			PlayEFX ();
 			ExecuteEvents.Execute(smith.gameObject, pointer, ExecuteEvents.submitHandler);
 		}
 	}
@@ -65,6 +68,10 @@ public class Ingredients : MonoBehaviour {
 		//print ("Queue after schecks: " + ingredientQueue.Count);
 
 		ingredientQueue.Clear ();
+	}
+
+	void PlayEFX(){
+		smithEFX.GetComponent<Animator> ().Play ("FireComplexBurst");
 	}
 
 	bool AllIngredients () {
