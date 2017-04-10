@@ -14,11 +14,15 @@ public class Ingredients : MonoBehaviour {
 	public Button smith;
 	private int failuresCount = 0;
 	private Queue<Ingredient> ingredientQueue;
+	private List<Ingredient> ingredientSet;
 	private PointerEventData pointer = new PointerEventData(EventSystem.current);
+	private bool rhythm = false;
+	private Ingredient[] correctOrder = {Ingredient.Feather, Ingredient.Milk, Ingredient.Barley, Ingredient.Wool, Ingredient.Failures};
 
 	// Use this for initialization
 	void Start () {
 		ingredientQueue = new Queue<Ingredient> ();
+		ingredientSet = new List<Ingredient> ();
 	}
 	
 	// Update is called once per frame
@@ -44,6 +48,10 @@ public class Ingredients : MonoBehaviour {
 	}
 		
 	void AddIngredient (Ingredient ingredient){
+		// check timer to keep rhytm
+		if(!ingredientSet.Contains(ingredient)){
+			ingredientSet.Add(ingredient);
+		}
 		ingredientQueue.Enqueue (ingredient);
 	}
 
@@ -51,10 +59,22 @@ public class Ingredients : MonoBehaviour {
 		Queue<Ingredient> tempIngredientQueue = ingredientQueue;
 		//print ("Queue before checks: " + ingredientQueue.Count);
 
+		if (rhythm) {
+			print ("Rhythm correct");
+		} else {
+			print ("Rhythm missed");
+		}
+
 		if (AllIngredients ()) {
 			print ("All ingredients");
 		} else {
 			print ("Something missing");
+		}
+
+		if (CheckOrder ()) {
+			print ("Correct order");
+		} else {
+			print ("Incorrect order");
 		}
 
 		if (CheckRepeats ()) {
@@ -64,7 +84,21 @@ public class Ingredients : MonoBehaviour {
 		}
 		//print ("Queue after schecks: " + ingredientQueue.Count);
 
+		ingredientSet.Clear ();
 		ingredientQueue.Clear ();
+	}
+
+	bool CheckOrder(){
+		for (int i = 0; i < ingredientSet.Count; i++) {
+			if (ingredientSet [i] != correctOrder [i]) {
+				return false;
+			}
+		}
+		if (ingredientSet.Count > 3) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	bool AllIngredients () {
