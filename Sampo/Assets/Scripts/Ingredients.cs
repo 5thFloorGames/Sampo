@@ -35,6 +35,7 @@ public class Ingredients : MonoBehaviour {
 	private AudioClip cowResult;
 	private AudioClip plowResult;
 	private AudioClip boatResult;
+	private AudioClip whoosh;
 	private AudioClip[] musicBarley;
 	private AudioClip[] musicWool;
 	private AudioClip[] musicMilk;
@@ -73,6 +74,8 @@ public class Ingredients : MonoBehaviour {
 		plowResult = Resources.Load<AudioClip> ("Audio/Music/Plow");
 		boatResult = Resources.Load<AudioClip> ("Audio/Music/Boat");
 
+		whoosh = Resources.Load<AudioClip> ("Audio/whoosh");
+
 		sound = GetComponent<AudioSource> ();
 		ingredientToSound = new Dictionary<Ingredient, AudioClip[][]> ();
 		ingredientToSound.Add(Ingredient.Milk, new AudioClip[][]{milkA, milkB});
@@ -91,6 +94,7 @@ public class Ingredients : MonoBehaviour {
 		resultToMusic.Add (Result.Cow, cowResult);
 		resultToMusic.Add (Result.Plow, plowResult);
 		resultToMusic.Add (Result.Boat, boatResult);
+		// IF JOKA ESTÄÄ FAILUREN RESULTIN LÖYTÄMISEN TUOLLA ALHAALLA
 	}
 
 	void PlaySound(Ingredient ingredient){
@@ -103,21 +107,27 @@ public class Ingredients : MonoBehaviour {
 	}
 
 	AudioClip GetResult(Result result){
+
 		return resultToMusic [result];
 	}
 
 	IEnumerator PlaySmithingBridge(Result result){
+		PlayEFX ();
 		sound.clip = musicSmithing;
 		sound.PlayOneShot (effectsSmithing, 0.1f);
+		sound.PlayOneShot (whoosh, 1f);
 		sound.Play ();
 
 		while (sound.isPlaying) {
 			yield return null;
 		}
-
-		sound.clip = GetResult (result);
-		sound.Play ();
+		if (result != Result.Failure) {
+			sound.clip = GetResult (result);
+			sound.Play ();
+		}
 		results.Spawn (result);
+		PlayEFX ();
+		sound.PlayOneShot (whoosh, 1f);
 
 		while (sound.isPlaying) {
 			yield return null;
@@ -167,7 +177,6 @@ public class Ingredients : MonoBehaviour {
 			AddIngredient (Ingredient.Failures);
 		} else if (Input.GetKeyDown (KeyCode.Space)) {
 			CheckIngredients ();
-			PlayEFX ();
 			ExecuteEvents.Execute(smith.gameObject, pointer, ExecuteEvents.submitHandler);
 		}
 		if (TimerOn) {
