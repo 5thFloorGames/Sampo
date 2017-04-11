@@ -20,13 +20,16 @@ public class Ingredients : MonoBehaviour {
 	private AudioClip[] woolB;
 	private AudioClip[] featherA;
 	private AudioClip[] featherB;
+	private AudioClip[] smithing;
 	private Dictionary<Ingredient, AudioClip[][]> ingredientToSound;
 	private int failuresCount = 0;
-	private int index = 0;
+	private int verseIndex = -1;
 	private Queue<Ingredient> ingredientQueue;
 	private List<Ingredient> ingredientSet;
 	private PointerEventData pointer = new PointerEventData(EventSystem.current);
 	private Ingredient[] correctOrder = {Ingredient.Feather, Ingredient.Milk, Ingredient.Barley, Ingredient.Wool, Ingredient.Failures};
+	private AudioClip[] musicSmithing;
+	private AudioClip[] musicBarley;
 	private GameObject smithEFX;
 	private AudioSource sound;
 	private bool rhythm = false;
@@ -44,6 +47,9 @@ public class Ingredients : MonoBehaviour {
 		woolB = Resources.LoadAll<AudioClip>("Audio/Ingredients/Wool/B");
 		featherA = Resources.LoadAll<AudioClip>("Audio/Ingredients/Feather/A");
 		featherB = Resources.LoadAll<AudioClip>("Audio/Ingredients/Feather/B");
+		musicSmithing = Resources.LoadAll<AudioClip> ("Audio/Music/Smithing");
+		musicBarley = Resources.LoadAll<AudioClip> ("Audio/Music/Barley");
+		smithing = Resources.LoadAll<AudioClip> ("Audio/Smithing");
 		sound = GetComponent<AudioSource> ();
 		ingredientToSound = new Dictionary<Ingredient, AudioClip[][]> ();
 		ingredientToSound.Add(Ingredient.Milk, new AudioClip[][]{milkA, milkB});
@@ -53,10 +59,32 @@ public class Ingredients : MonoBehaviour {
 	}
 
 	void PlaySound(Ingredient ingredient){
-		AudioClip[] clips = ingredientToSound [ingredient][index];
+		AudioClip[] clips = ingredientToSound [ingredient][verseIndex];
 
 		sound.PlayOneShot (clips [Random.Range(0, clips.Length)]);
-	
+		if (ingredient == Ingredient.Barley) {
+			sound.PlayOneShot (musicBarley [verseIndex], 0.1f);
+		}
+	}
+
+	IEnumerator PlaySounds(AudioClip[] clips){
+		int index = 0;
+		sound.clip = clips[0];
+		sound.PlayOneShot (musicSmithing [index % 2], 0.1f);
+		sound.Play ();
+		while (index < clips.Length) {
+			if (!sound.isPlaying) {
+				index++;
+				if (index == clips.Length) {
+					break;
+				}
+				sound.clip = clips [index];
+				sound.PlayOneShot (musicSmithing [index % 2], 0.1f);
+				sound.Play ();
+			}
+			yield return new WaitForSeconds (0.25f);
+		}
+
 	}
 		
 	void PlayEFX(){
@@ -80,6 +108,7 @@ public class Ingredients : MonoBehaviour {
 		} else if (Input.GetKeyDown (KeyCode.T)) {
 			AddIngredient (Ingredient.Failures);
 		} else if (Input.GetKeyDown (KeyCode.Space)) {
+			StartCoroutine(PlaySounds (smithing));
 			CheckIngredients ();
 			PlayEFX ();
 			ExecuteEvents.Execute(smith.gameObject, pointer, ExecuteEvents.submitHandler);
@@ -88,7 +117,7 @@ public class Ingredients : MonoBehaviour {
 
 	void AddIngredient (Ingredient ingredient){
 		// check timer to keep rhytm
-		index = ((index + 1) % 2);
+		verseIndex = ((verseIndex + 1) % 2);
 		PlaySound (ingredient);
 		if(!ingredientSet.Contains(ingredient)){
 			ingredientSet.Add(ingredient);
