@@ -115,10 +115,10 @@ public class Ingredients : MonoBehaviour {
 	}
 
 	IEnumerator PlaySmithingBridge(Result result){
-		PlayEFX ();
+		//PlayEFX ();
 		sound.clip = musicSmithing;
 		sound.PlayOneShot (effectsSmithing, 0.1f);
-		sound.PlayOneShot (whoosh, 0.5f);
+		//sound.PlayOneShot (whoosh, 0.5f);
 		sound.Play ();
 
 		while (sound.isPlaying) {
@@ -172,6 +172,10 @@ public class Ingredients : MonoBehaviour {
 
 		if (Input.GetKeyDown (KeyCode.Escape)) {
 			Application.Quit ();
+		}
+
+		if(Input.GetKeyDown(KeyCode.P)){
+			StartCoroutine(PlaySmithingBridge(Result.Bow));
 		}
 	}
 
