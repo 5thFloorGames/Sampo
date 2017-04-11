@@ -40,11 +40,13 @@ public class Ingredients : MonoBehaviour {
 	private bool TimerOn = false;
 	private float timer;
 	private bool[] progress = {false, false, false, false};
+	private ResultSpawner results;
 
 	// Use this for initialization
 	void Start () {
 		ingredientQueue = new Queue<Ingredient> ();
 		ingredientSet = new List<Ingredient> ();
+		results = FindObjectOfType<ResultSpawner> ();
 		smithEFX = GameObject.Find ("FireComplex");
 		milkA = Resources.LoadAll<AudioClip>("Audio/Ingredients/Milk/A");
 		milkB = Resources.LoadAll<AudioClip>("Audio/Ingredients/Milk/B");
@@ -99,7 +101,7 @@ public class Ingredients : MonoBehaviour {
 			}
 			yield return new WaitForSeconds (0.25f);
 		}
-
+		results.Reset ();
 	}
 		
 	void PlayEFX(){
@@ -189,6 +191,7 @@ public class Ingredients : MonoBehaviour {
 		}
 
 		if (CheckRepeats ()) {
+			results.Spawn (Result.Bow);
 			print ("Everything twice");
 		} else {
 			print ("Something not twice");
