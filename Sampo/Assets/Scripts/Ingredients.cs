@@ -22,6 +22,7 @@ public class Ingredients : MonoBehaviour {
 	private AudioClip[] featherB;
 	private AudioClip[] smithing;
 	private Dictionary<Ingredient, AudioClip[][]> ingredientToSound;
+	private Dictionary<Ingredient, AudioClip[]> ingredientToMusic;
 	private int failuresCount = 0;
 	private int verseIndex = -1;
 	private Queue<Ingredient> ingredientQueue;
@@ -30,11 +31,15 @@ public class Ingredients : MonoBehaviour {
 	private Ingredient[] correctOrder = {Ingredient.Feather, Ingredient.Milk, Ingredient.Barley, Ingredient.Wool, Ingredient.Failures};
 	private AudioClip[] musicSmithing;
 	private AudioClip[] musicBarley;
+	private AudioClip[] musicWool;
+	private AudioClip[] musicMilk;
+	private AudioClip[] musicFeather;
 	private GameObject smithEFX;
 	private AudioSource sound;
 	private bool rhythm = true;
 	private bool TimerOn = false;
 	private float timer;
+	private bool[] progress = {false, false, false, false};
 
 	// Use this for initialization
 	void Start () {
@@ -51,6 +56,10 @@ public class Ingredients : MonoBehaviour {
 		featherB = Resources.LoadAll<AudioClip>("Audio/Ingredients/Feather/B");
 		musicSmithing = Resources.LoadAll<AudioClip> ("Audio/Music/Smithing");
 		musicBarley = Resources.LoadAll<AudioClip> ("Audio/Music/Barley");
+		musicWool = Resources.LoadAll<AudioClip> ("Audio/Music/Wool");
+		musicMilk = Resources.LoadAll<AudioClip> ("Audio/Music/Milk");
+		musicFeather = Resources.LoadAll<AudioClip> ("Audio/Music/Feather");
+
 		smithing = Resources.LoadAll<AudioClip> ("Audio/Smithing");
 		sound = GetComponent<AudioSource> ();
 		ingredientToSound = new Dictionary<Ingredient, AudioClip[][]> ();
@@ -58,15 +67,19 @@ public class Ingredients : MonoBehaviour {
 		ingredientToSound.Add(Ingredient.Barley, new AudioClip[][]{barleyA, barleyB});
 		ingredientToSound.Add(Ingredient.Feather, new AudioClip[][]{featherA, featherB});
 		ingredientToSound.Add(Ingredient.Wool, new AudioClip[][]{woolA, woolB});
+
+		ingredientToMusic = new Dictionary<Ingredient, AudioClip[]> ();
+		ingredientToMusic.Add (Ingredient.Milk, musicMilk);
+		ingredientToMusic.Add (Ingredient.Barley, musicBarley);
+		ingredientToMusic.Add (Ingredient.Feather, musicFeather);
+		ingredientToMusic.Add (Ingredient.Wool, musicWool);
 	}
 
 	void PlaySound(Ingredient ingredient){
 		AudioClip[] clips = ingredientToSound [ingredient][verseIndex];
 
 		sound.PlayOneShot (clips [Random.Range(0, clips.Length)]);
-		if (ingredient == Ingredient.Barley) {
-			sound.PlayOneShot (musicBarley [verseIndex], 0.1f);
-		}
+		sound.PlayOneShot (ingredientToMusic[ingredient][verseIndex], 0.1f);
 	}
 
 	IEnumerator PlaySounds(AudioClip[] clips){
@@ -118,6 +131,10 @@ public class Ingredients : MonoBehaviour {
 		if (TimerOn) {
 			timer += Time.deltaTime;
 		}
+
+		if (Input.GetKeyDown (KeyCode.Escape)) {
+			Application.Quit ();
+		}
 	}
 
 	void AddIngredient (Ingredient ingredient){
@@ -159,16 +176,16 @@ public class Ingredients : MonoBehaviour {
 		timer = 0;
 		TimerOn = false;
 
-		if (AllIngredients ()) {
-			print ("All ingredients");
-		} else {
-			print ("Something missing");
-		}
-
 		if (CheckOrder ()) {
 			print ("Correct order");
 		} else {
 			print ("Incorrect order");
+		}
+
+		if (AllIngredients ()) {
+			print ("All ingredients");
+		} else {
+			print ("Something missing");
 		}
 
 		if (CheckRepeats ()) {
@@ -176,7 +193,6 @@ public class Ingredients : MonoBehaviour {
 		} else {
 			print ("Something not twice");
 		}
-		//print ("Queue after schecks: " + ingredientQueue.Count);
 
 		ingredientSet.Clear ();
 		ingredientQueue.Clear ();
@@ -215,7 +231,10 @@ public class Ingredients : MonoBehaviour {
 
 	bool CheckRepeats(){
 		while (ingredientQueue.Count > 0) {
-			if (ingredientQueue.Dequeue () != ingredientQueue.Dequeue () || ingredientQueue.Count == 1) {
+			if (ingredientQueue.Count == 1) {
+				return false;
+			}
+			if (ingredientQueue.Dequeue () != ingredientQueue.Dequeue ()) {
 				return false;
 			}
 		}

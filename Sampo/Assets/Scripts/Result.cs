@@ -1,0 +1,1 @@
+﻿public enum Result {Bow, Plow, Cow, Boat};
