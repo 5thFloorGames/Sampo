@@ -8,8 +8,12 @@ public class ResultSpawner : MonoBehaviour {
 	public SymbolStatus[] symbols;
 
 	public void Spawn(Result result){
-		symbols [(int)result].MarkDone ();
-		results [(int)result].SetActive(true);
+		if (result == Result.Failure) {
+			print ("Failure");
+		} else {
+			symbols [(int)result].MarkDone ();
+			results [(int)result].SetActive (true);
+		}
 	}
 
 	public void Reset(){
@@ -18,5 +22,9 @@ public class ResultSpawner : MonoBehaviour {
 				g.SetActive (false);
 			}
 		}
+	}
+
+	public bool CheckSymbolStatus(Result result){
+		return symbols [(int)result].done;
 	}
 }
