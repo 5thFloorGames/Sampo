@@ -5,18 +5,10 @@ using UnityEngine;
 public class ResultSpawner : MonoBehaviour {
 
 	public GameObject[] results;
-
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+	public SymbolStatus[] symbols;
 
 	public void Spawn(Result result){
+		symbols [(int)result].MarkDone ();
 		results [(int)result].SetActive(true);
 	}
 
