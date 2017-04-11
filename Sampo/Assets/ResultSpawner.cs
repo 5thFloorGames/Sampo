@@ -16,7 +16,7 @@ public class ResultSpawner : MonoBehaviour {
 
 	public void Spawn(Result result){
 		if (result == Result.Failure) {
-			print ("Failure");
+			results [(int)result].SetActive (true);
 		} else {
 			symbols [(int)result].MarkDone ();
 			results [(int)result].SetActive (true);
