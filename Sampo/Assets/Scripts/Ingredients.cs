@@ -32,7 +32,9 @@ public class Ingredients : MonoBehaviour {
 	private AudioClip[] musicBarley;
 	private GameObject smithEFX;
 	private AudioSource sound;
-	private bool rhythm = false;
+	private bool rhythm = true;
+	private bool TimerOn = false;
+	private float timer;
 
 	// Use this for initialization
 	void Start () {
@@ -113,10 +115,28 @@ public class Ingredients : MonoBehaviour {
 			PlayEFX ();
 			ExecuteEvents.Execute(smith.gameObject, pointer, ExecuteEvents.submitHandler);
 		}
+		if (TimerOn) {
+			timer += Time.deltaTime;
+		}
 	}
 
 	void AddIngredient (Ingredient ingredient){
 		// check timer to keep rhytm
+		if (!TimerOn) {
+			TimerOn = true;
+			rhythm = true;
+			timer = 0;
+		} else {
+			print (timer);
+			if (timer < 4.8f || timer > 5.2f) {
+				rhythm = false;
+				print ("RHYTHM MISSED");
+			} else {
+				print ("Timing good");
+			}
+			timer = 0;
+		}
+
 		verseIndex = ((verseIndex + 1) % 2);
 		PlaySound (ingredient);
 		if(!ingredientSet.Contains(ingredient)){
@@ -129,11 +149,15 @@ public class Ingredients : MonoBehaviour {
 		Queue<Ingredient> tempIngredientQueue = ingredientQueue;
 		//print ("Queue before checks: " + ingredientQueue.Count);
 
-		if (rhythm) {
+		if (rhythm && !(timer < 4.8f || timer > 5.2f)) {
+			print (timer);
 			print ("Rhythm correct");
 		} else {
+			print (timer);
 			print ("Rhythm missed");
 		}
+		timer = 0;
+		TimerOn = false;
 
 		if (AllIngredients ()) {
 			print ("All ingredients");
