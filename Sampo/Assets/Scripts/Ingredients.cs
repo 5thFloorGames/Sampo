@@ -168,9 +168,14 @@ public class Ingredients : MonoBehaviour {
 		Queue<Ingredient> tempIngredientQueue = ingredientQueue;
 		//print ("Queue before checks: " + ingredientQueue.Count);
 
+		Result result = Result.Failure;
+
 		if (rhythm && !(timer < 4.8f || timer > 5.2f)) {
 			print (timer);
 			print ("Rhythm correct");
+			if (!results.CheckSymbolStatus (Result.Boat)) {
+				result = Result.Boat;
+			}
 		} else {
 			print (timer);
 			print ("Rhythm missed");
@@ -179,23 +184,33 @@ public class Ingredients : MonoBehaviour {
 		TimerOn = false;
 
 		if (CheckOrder ()) {
+			if (!results.CheckSymbolStatus (Result.Cow)) {
+				result = Result.Cow;
+			}
 			print ("Correct order");
 		} else {
 			print ("Incorrect order");
 		}
 
 		if (AllIngredients ()) {
+			if (!results.CheckSymbolStatus (Result.Plow)) {
+				result = Result.Plow;
+			}
 			print ("All ingredients");
 		} else {
 			print ("Something missing");
 		}
 
 		if (CheckRepeats ()) {
-			results.Spawn (Result.Bow);
+			if (!results.CheckSymbolStatus (Result.Bow)) {
+				result = Result.Bow;
+			}
 			print ("Everything twice");
 		} else {
 			print ("Something not twice");
 		}
+
+		results.Spawn (result);
 
 		ingredientSet.Clear ();
 		ingredientQueue.Clear ();

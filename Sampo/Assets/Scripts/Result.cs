@@ -1,1 +1,1 @@
-﻿public enum Result {Bow, Plow, Cow, Boat};
+﻿public enum Result {Bow, Plow, Cow, Boat, Failure};
