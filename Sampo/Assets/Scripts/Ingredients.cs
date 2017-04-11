@@ -35,6 +35,7 @@ public class Ingredients : MonoBehaviour {
 	private AudioClip cowResult;
 	private AudioClip plowResult;
 	private AudioClip boatResult;
+	private AudioClip failureResult;
 	private AudioClip whoosh;
 	private AudioClip[] musicBarley;
 	private AudioClip[] musicWool;
@@ -73,6 +74,7 @@ public class Ingredients : MonoBehaviour {
 		cowResult = Resources.Load<AudioClip> ("Audio/Music/Cow");
 		plowResult = Resources.Load<AudioClip> ("Audio/Music/Plow");
 		boatResult = Resources.Load<AudioClip> ("Audio/Music/Boat");
+		failureResult = Resources.Load<AudioClip> ("Audio/Music/Failure");
 
 		whoosh = Resources.Load<AudioClip> ("Audio/whoosh");
 
@@ -94,7 +96,7 @@ public class Ingredients : MonoBehaviour {
 		resultToMusic.Add (Result.Cow, cowResult);
 		resultToMusic.Add (Result.Plow, plowResult);
 		resultToMusic.Add (Result.Boat, boatResult);
-		// IF JOKA ESTÄÄ FAILUREN RESULTIN LÖYTÄMISEN TUOLLA ALHAALLA
+		resultToMusic.Add (Result.Failure, failureResult);
 
 	}
 
@@ -116,19 +118,17 @@ public class Ingredients : MonoBehaviour {
 		PlayEFX ();
 		sound.clip = musicSmithing;
 		sound.PlayOneShot (effectsSmithing, 0.1f);
-		sound.PlayOneShot (whoosh, 1f);
+		sound.PlayOneShot (whoosh, 0.5f);
 		sound.Play ();
 
 		while (sound.isPlaying) {
 			yield return null;
 		}
-		if (result != Result.Failure) {
-			sound.clip = GetResult (result);
-			sound.Play ();
-		}
+		sound.clip = GetResult (result);
+		sound.Play ();
 		results.Spawn (result);
 		PlayEFX ();
-		sound.PlayOneShot (whoosh, 1f);
+		sound.PlayOneShot (whoosh, 0.5f);
 
 		while (sound.isPlaying) {
 			yield return null;
