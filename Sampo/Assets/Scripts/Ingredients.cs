@@ -95,6 +95,7 @@ public class Ingredients : MonoBehaviour {
 		resultToMusic.Add (Result.Plow, plowResult);
 		resultToMusic.Add (Result.Boat, boatResult);
 		// IF JOKA ESTÄÄ FAILUREN RESULTIN LÖYTÄMISEN TUOLLA ALHAALLA
+
 	}
 
 	void PlaySound(Ingredient ingredient){
@@ -132,31 +133,17 @@ public class Ingredients : MonoBehaviour {
 		while (sound.isPlaying) {
 			yield return null;
 		}
-		results.Reset ();
-	}
+		PlayDestroy ();
 
-	IEnumerator PlaySounds(AudioClip[] clips){
-		int index = 0;
-		sound.clip = clips[0];
-		sound.PlayOneShot (musicSmithing, 0.1f);
-		sound.Play ();
-		while (index < clips.Length) {
-			if (!sound.isPlaying) {
-				index++;
-				if (index == clips.Length) {
-					break;
-				}
-				sound.clip = clips [index];
-				sound.PlayOneShot (musicSmithing, 0.1f);
-				sound.Play ();
-			}
-			yield return new WaitForSeconds (0.25f);
-		}
 		results.Reset ();
 	}
 		
 	void PlayEFX(){
 		smithEFX.GetComponent<Animator> ().Play ("FireComplexBurst");
+	}
+
+	void PlayDestroy(){
+		smithEFX.GetComponent<Animator> ().Play ("FireComplexBurstReverse");
 	}
 	
 	// Update is called once per frame
