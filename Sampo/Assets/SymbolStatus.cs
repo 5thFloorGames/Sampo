@@ -16,5 +16,6 @@ public class SymbolStatus : MonoBehaviour {
 	public void MarkDone(){
 		symbol.sprite = doneImage;
 		symbol.color = new Color (symbol.color.r, symbol.color.g, symbol.color.b, 1.0f);
+		done = true;
 	}
 }

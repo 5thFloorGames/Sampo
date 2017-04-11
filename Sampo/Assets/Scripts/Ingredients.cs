@@ -20,16 +20,21 @@ public class Ingredients : MonoBehaviour {
 	private AudioClip[] woolB;
 	private AudioClip[] featherA;
 	private AudioClip[] featherB;
-	private AudioClip[] smithing;
 	private Dictionary<Ingredient, AudioClip[][]> ingredientToSound;
 	private Dictionary<Ingredient, AudioClip[]> ingredientToMusic;
+	private Dictionary<Result, AudioClip> resultToMusic;
 	private int failuresCount = 0;
 	private int verseIndex = -1;
 	private Queue<Ingredient> ingredientQueue;
 	private List<Ingredient> ingredientSet;
 	private PointerEventData pointer = new PointerEventData(EventSystem.current);
 	private Ingredient[] correctOrder = {Ingredient.Feather, Ingredient.Milk, Ingredient.Barley, Ingredient.Wool, Ingredient.Failures};
-	private AudioClip[] musicSmithing;
+	private AudioClip musicSmithing;
+	private AudioClip effectsSmithing;
+	private AudioClip bowResult;
+	private AudioClip cowResult;
+	private AudioClip plowResult;
+	private AudioClip boatResult;
 	private AudioClip[] musicBarley;
 	private AudioClip[] musicWool;
 	private AudioClip[] musicMilk;
@@ -56,13 +61,18 @@ public class Ingredients : MonoBehaviour {
 		woolB = Resources.LoadAll<AudioClip>("Audio/Ingredients/Wool/B");
 		featherA = Resources.LoadAll<AudioClip>("Audio/Ingredients/Feather/A");
 		featherB = Resources.LoadAll<AudioClip>("Audio/Ingredients/Feather/B");
-		musicSmithing = Resources.LoadAll<AudioClip> ("Audio/Music/Smithing");
+		musicSmithing = Resources.Load<AudioClip> ("Audio/Smithing");
+		effectsSmithing = Resources.Load<AudioClip> ("Audio/smith");
 		musicBarley = Resources.LoadAll<AudioClip> ("Audio/Music/Barley");
 		musicWool = Resources.LoadAll<AudioClip> ("Audio/Music/Wool");
 		musicMilk = Resources.LoadAll<AudioClip> ("Audio/Music/Milk");
 		musicFeather = Resources.LoadAll<AudioClip> ("Audio/Music/Feather");
 
-		smithing = Resources.LoadAll<AudioClip> ("Audio/Smithing");
+		bowResult = Resources.Load<AudioClip> ("Audio/Music/Bow");
+		cowResult = Resources.Load<AudioClip> ("Audio/Music/Cow");
+		plowResult = Resources.Load<AudioClip> ("Audio/Music/Plow");
+		boatResult = Resources.Load<AudioClip> ("Audio/Music/Boat");
+
 		sound = GetComponent<AudioSource> ();
 		ingredientToSound = new Dictionary<Ingredient, AudioClip[][]> ();
 		ingredientToSound.Add(Ingredient.Milk, new AudioClip[][]{milkA, milkB});
@@ -75,19 +85,50 @@ public class Ingredients : MonoBehaviour {
 		ingredientToMusic.Add (Ingredient.Barley, musicBarley);
 		ingredientToMusic.Add (Ingredient.Feather, musicFeather);
 		ingredientToMusic.Add (Ingredient.Wool, musicWool);
+
+		resultToMusic = new Dictionary<Result, AudioClip> ();
+		resultToMusic.Add (Result.Bow, bowResult);
+		resultToMusic.Add (Result.Cow, cowResult);
+		resultToMusic.Add (Result.Plow, plowResult);
+		resultToMusic.Add (Result.Boat, boatResult);
 	}
 
 	void PlaySound(Ingredient ingredient){
 		AudioClip[] clips = ingredientToSound [ingredient][verseIndex];
 
+		// if first verse, randomize, if second and same ingredient, use same one.
+
 		sound.PlayOneShot (clips [Random.Range(0, clips.Length)]);
 		sound.PlayOneShot (ingredientToMusic[ingredient][verseIndex], 0.1f);
+	}
+
+	AudioClip GetResult(Result result){
+		return resultToMusic [result];
+	}
+
+	IEnumerator PlaySmithingBridge(Result result){
+		sound.clip = musicSmithing;
+		sound.PlayOneShot (effectsSmithing, 0.1f);
+		sound.Play ();
+
+		while (sound.isPlaying) {
+			yield return null;
+		}
+
+		sound.clip = GetResult (result);
+		sound.Play ();
+		results.Spawn (result);
+
+		while (sound.isPlaying) {
+			yield return null;
+		}
+		results.Reset ();
 	}
 
 	IEnumerator PlaySounds(AudioClip[] clips){
 		int index = 0;
 		sound.clip = clips[0];
-		sound.PlayOneShot (musicSmithing [index % 2], 0.1f);
+		sound.PlayOneShot (musicSmithing, 0.1f);
 		sound.Play ();
 		while (index < clips.Length) {
 			if (!sound.isPlaying) {
@@ -96,7 +137,7 @@ public class Ingredients : MonoBehaviour {
 					break;
 				}
 				sound.clip = clips [index];
-				sound.PlayOneShot (musicSmithing [index % 2], 0.1f);
+				sound.PlayOneShot (musicSmithing, 0.1f);
 				sound.Play ();
 			}
 			yield return new WaitForSeconds (0.25f);
@@ -125,7 +166,6 @@ public class Ingredients : MonoBehaviour {
 		} else if (Input.GetKeyDown (KeyCode.T)) {
 			AddIngredient (Ingredient.Failures);
 		} else if (Input.GetKeyDown (KeyCode.Space)) {
-			StartCoroutine(PlaySounds (smithing));
 			CheckIngredients ();
 			PlayEFX ();
 			ExecuteEvents.Execute(smith.gameObject, pointer, ExecuteEvents.submitHandler);
@@ -169,48 +209,50 @@ public class Ingredients : MonoBehaviour {
 		//print ("Queue before checks: " + ingredientQueue.Count);
 
 		Result result = Result.Failure;
-
-		if (rhythm && !(timer < 4.8f || timer > 5.2f)) {
-			print (timer);
-			print ("Rhythm correct");
-			if (!results.CheckSymbolStatus (Result.Boat)) {
-				result = Result.Boat;
+		if (ingredientQueue.Count > 1) {
+			if (rhythm && !(timer < 4.8f || timer > 5.2f)) {
+				print (timer);
+				print ("Rhythm correct");
+				if (!results.CheckSymbolStatus (Result.Boat)) {
+					result = Result.Boat;
+				}
+			} else {
+				print (timer);
+				print ("Rhythm missed");
 			}
-		} else {
-			print (timer);
-			print ("Rhythm missed");
-		}
-		timer = 0;
-		TimerOn = false;
+			timer = 0;
+			TimerOn = false;
 
-		if (CheckOrder ()) {
-			if (!results.CheckSymbolStatus (Result.Cow)) {
-				result = Result.Cow;
+			if (AllIngredients ()) {
+				if (!results.CheckSymbolStatus (Result.Plow)) {
+					result = Result.Plow;
+				}
+				print ("All ingredients");
+			} else {
+				print ("Something missing");
 			}
-			print ("Correct order");
-		} else {
-			print ("Incorrect order");
-		}
 
-		if (AllIngredients ()) {
-			if (!results.CheckSymbolStatus (Result.Plow)) {
-				result = Result.Plow;
+			if (CheckOrder ()) {
+				if (!results.CheckSymbolStatus (Result.Cow)) {
+					result = Result.Cow;
+				}
+				print ("Correct order");
+			} else {
+				print ("Incorrect order");
 			}
-			print ("All ingredients");
-		} else {
-			print ("Something missing");
-		}
 
-		if (CheckRepeats ()) {
-			if (!results.CheckSymbolStatus (Result.Bow)) {
-				result = Result.Bow;
+			if (CheckRepeats ()) {
+				if (!results.CheckSymbolStatus (Result.Bow)) {
+					result = Result.Bow;
+				}
+				print ("Everything twice");
+			} else {
+				print ("Something not twice");
 			}
-			print ("Everything twice");
-		} else {
-			print ("Something not twice");
 		}
 
-		results.Spawn (result);
+		StartCoroutine(PlaySmithingBridge(result));
+
 
 		ingredientSet.Clear ();
 		ingredientQueue.Clear ();
