@@ -36,6 +36,7 @@ public class Ingredients : MonoBehaviour {
 	private AudioClip plowResult;
 	private AudioClip boatResult;
 	private AudioClip failureResult;
+	private AudioClip sampoResult;
 	private AudioClip whoosh;
 	private AudioClip[] musicBarley;
 	private AudioClip[] musicWool;
@@ -49,6 +50,8 @@ public class Ingredients : MonoBehaviour {
 	private bool[] progress = {false, false, false, false};
 	private ResultSpawner results;
 	public GameObject sparks;
+	private int lastLine = 0;
+	private Ingredient lastIngredient;
 
 	// Use this for initialization
 	void Start () {
@@ -76,6 +79,7 @@ public class Ingredients : MonoBehaviour {
 		plowResult = Resources.Load<AudioClip> ("Audio/Music/Plow");
 		boatResult = Resources.Load<AudioClip> ("Audio/Music/Boat");
 		failureResult = Resources.Load<AudioClip> ("Audio/Music/Failure");
+		sampoResult = Resources.Load<AudioClip> ("Audio/Music/Sampo");
 
 		whoosh = Resources.Load<AudioClip> ("Audio/whoosh");
 
@@ -98,15 +102,25 @@ public class Ingredients : MonoBehaviour {
 		resultToMusic.Add (Result.Plow, plowResult);
 		resultToMusic.Add (Result.Boat, boatResult);
 		resultToMusic.Add (Result.Failure, failureResult);
+		resultToMusic.Add (Result.Sampo, sampoResult);
 
 	}
 
 	void PlaySound(Ingredient ingredient){
 		AudioClip[] clips = ingredientToSound [ingredient][verseIndex];
 
+		if (verseIndex == 0) {
+			lastLine = Random.Range (0, clips.Length);
+			lastIngredient = ingredient;
+		}
+
+		if (ingredient == lastIngredient) {
+			sound.PlayOneShot (clips [lastLine]);
+		} else {
+			sound.PlayOneShot (clips [Random.Range(0, clips.Length)]);
+		}
 		// if first verse, randomize, if second and same ingredient, use same one.
 
-		sound.PlayOneShot (clips [Random.Range(0, clips.Length)]);
 		sound.PlayOneShot (ingredientToMusic[ingredient][verseIndex], 0.1f);
 	}
 
@@ -131,8 +145,13 @@ public class Ingredients : MonoBehaviour {
 
 		sound.clip = GetResult (result);
 		sound.Play ();
-		results.Spawn (result);
-		PlayEFX ();
+
+		if (result == Result.Sampo) {
+			print ("SAMPO CREATED, ALL REJOICE");
+		} else {
+			results.Spawn (result); // Crash.
+			PlayEFX ();
+		}
 		sound.PlayOneShot (whoosh, 0.5f);
 
 		while (sound.isPlaying) {
@@ -213,10 +232,12 @@ public class Ingredients : MonoBehaviour {
 		Queue<Ingredient> tempIngredientQueue = ingredientQueue;
 		//print ("Queue before checks: " + ingredientQueue.Count);
 
+		int successCounter = 0;
+
 		Result result = Result.Failure;
 		if (ingredientQueue.Count > 1) {
 			if (rhythm && !(timer < 4.8f || timer > 5.2f)) {
-				print (timer);
+				successCounter++;
 				print ("Rhythm correct");
 				if (!results.CheckSymbolStatus (Result.Boat)) {
 					result = Result.Boat;
@@ -233,6 +254,7 @@ public class Ingredients : MonoBehaviour {
 					result = Result.Plow;
 				}
 				print ("All ingredients");
+				successCounter++;
 			} else {
 				print ("Something missing");
 			}
@@ -242,6 +264,7 @@ public class Ingredients : MonoBehaviour {
 					result = Result.Cow;
 				}
 				print ("Correct order");
+				successCounter++;
 			} else {
 				print ("Incorrect order");
 			}
@@ -250,14 +273,24 @@ public class Ingredients : MonoBehaviour {
 				if (!results.CheckSymbolStatus (Result.Bow)) {
 					result = Result.Bow;
 				}
+				successCounter++;
 				print ("Everything twice");
 			} else {
 				print ("Something not twice");
 			}
 		}
 
+		if (results.CheckSymbolStatus (Result.Bow)
+		   && results.CheckSymbolStatus (Result.Cow)
+		   && results.CheckSymbolStatus (Result.Plow)
+		   && results.CheckSymbolStatus (Result.Boat)
+		   && successCounter == 4) {
+			result = Result.Sampo;
+		}
+
 		StartCoroutine(PlaySmithingBridge(result));
 
+		verseIndex = -1;
 
 		ingredientSet.Clear ();
 		ingredientQueue.Clear ();
