@@ -52,9 +52,11 @@ public class Ingredients : MonoBehaviour {
 	public GameObject sparks;
 	private int lastLine = 0;
 	private Ingredient lastIngredient;
+	private Animator animator;
 
 	// Use this for initialization
 	void Start () {
+		animator = GetComponent<Animator> ();
 		ingredientQueue = new Queue<Ingredient> ();
 		ingredientSet = new List<Ingredient> ();
 		results = FindObjectOfType<ResultSpawner> ();
@@ -104,6 +106,7 @@ public class Ingredients : MonoBehaviour {
 		resultToMusic.Add (Result.Failure, failureResult);
 		resultToMusic.Add (Result.Sampo, sampoResult);
 
+		animator.Play ("CanvasFadeIn");
 	}
 
 	void PlaySound(Ingredient ingredient){
@@ -148,6 +151,7 @@ public class Ingredients : MonoBehaviour {
 
 		if (result == Result.Sampo) {
 			print ("SAMPO CREATED, ALL REJOICE");
+			animator.Play ("CanvasFadeOut");
 		} else {
 			results.Spawn (result); // Crash.
 			PlayEFX ();
@@ -156,6 +160,10 @@ public class Ingredients : MonoBehaviour {
 
 		while (sound.isPlaying) {
 			yield return null;
+		}
+		if (result == Result.Sampo) {
+			yield return new WaitForSeconds (1.0f);
+			Application.Quit ();
 		}
 		PlayDestroy ();
 
