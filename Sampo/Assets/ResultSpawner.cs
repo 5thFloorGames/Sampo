@@ -7,14 +7,16 @@ public class ResultSpawner : MonoBehaviour {
 	public GameObject[] results;
 	public SymbolStatus[] symbols;
 	private Animator animator;
+	private AudioSource whoosh;
 
 	void Start(){
 		animator = GetComponent<Animator> ();
+		whoosh = GetComponent<AudioSource> ();
 	}
 
 	public void Spawn(Result result){
 		if (result == Result.Failure) {
-			print ("Failure");
+			results [(int)result].SetActive (true);
 		} else {
 			symbols [(int)result].MarkDone ();
 			results [(int)result].SetActive (true);
@@ -28,6 +30,7 @@ public class ResultSpawner : MonoBehaviour {
 
 	IEnumerator WaitAndReset(){
 		animator.SetTrigger ("Hide");
+		whoosh.Play ();
 
 		yield return new WaitForSeconds (1.0f);
 		foreach (GameObject g in results) {

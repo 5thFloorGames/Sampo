@@ -48,6 +48,7 @@ public class Ingredients : MonoBehaviour {
 	private float timer;
 	private bool[] progress = {false, false, false, false};
 	private ResultSpawner results;
+	public GameObject sparks;
 
 	// Use this for initialization
 	void Start () {
@@ -116,14 +117,18 @@ public class Ingredients : MonoBehaviour {
 
 	IEnumerator PlaySmithingBridge(Result result){
 		//PlayEFX ();
+		sparks.SetActive(true);
 		sound.clip = musicSmithing;
 		sound.PlayOneShot (effectsSmithing, 0.1f);
+
 		//sound.PlayOneShot (whoosh, 0.5f);
 		sound.Play ();
 
 		while (sound.isPlaying) {
 			yield return null;
 		}
+		sparks.SetActive(false);
+
 		sound.clip = GetResult (result);
 		sound.Play ();
 		results.Spawn (result);
