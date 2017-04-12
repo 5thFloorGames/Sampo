@@ -35,7 +35,7 @@ public class Ingredients : MonoBehaviour {
 	private AudioClip cowResult;
 	private AudioClip plowResult;
 	private AudioClip boatResult;
-	private AudioClip failureResult;
+	private AudioClip[] failureResult;
 	private AudioClip sampoResult;
 	private AudioClip whoosh;
 	private AudioClip[] musicBarley;
@@ -53,6 +53,7 @@ public class Ingredients : MonoBehaviour {
 	private int lastLine = 0;
 	private Ingredient lastIngredient;
 	private Animator animator;
+	public GameObject hintView;
 
 	// Use this for initialization
 	void Start () {
@@ -80,7 +81,7 @@ public class Ingredients : MonoBehaviour {
 		cowResult = Resources.Load<AudioClip> ("Audio/Music/Cow");
 		plowResult = Resources.Load<AudioClip> ("Audio/Music/Plow");
 		boatResult = Resources.Load<AudioClip> ("Audio/Music/Boat");
-		failureResult = Resources.Load<AudioClip> ("Audio/Music/Failure");
+		failureResult = Resources.LoadAll<AudioClip> ("Audio/Music/Failure");
 		sampoResult = Resources.Load<AudioClip> ("Audio/Music/Sampo");
 
 		whoosh = Resources.Load<AudioClip> ("Audio/whoosh");
@@ -103,7 +104,6 @@ public class Ingredients : MonoBehaviour {
 		resultToMusic.Add (Result.Cow, cowResult);
 		resultToMusic.Add (Result.Plow, plowResult);
 		resultToMusic.Add (Result.Boat, boatResult);
-		resultToMusic.Add (Result.Failure, failureResult);
 		resultToMusic.Add (Result.Sampo, sampoResult);
 
 		animator.Play ("CanvasFadeIn");
@@ -128,6 +128,9 @@ public class Ingredients : MonoBehaviour {
 	}
 
 	AudioClip GetResult(Result result){
+		if (result == Result.Failure) {
+			return failureResult[Random.Range(0, failureResult.Length)];
+		}
 
 		return resultToMusic [result];
 	}
@@ -197,6 +200,8 @@ public class Ingredients : MonoBehaviour {
 		} else if (Input.GetKeyDown (KeyCode.Space)) {
 			CheckIngredients ();
 			ExecuteEvents.Execute(smith.gameObject, pointer, ExecuteEvents.submitHandler);
+		} else if (Input.GetKeyDown (KeyCode.H)){
+			hintView.SetActive (!hintView.activeSelf);
 		}
 		if (TimerOn) {
 			timer += Time.deltaTime;
